@@ -47,9 +47,28 @@ function processInput(fileString) {
   return processed;
 }
 
+function setPrintValues() {
+  // return object
+  let result = {beforeBarcode: "", afterBarcode: "", scriptHead: "", scriptTail: ""};
+
+  // get mode
+  let mode = document.getElementById("modeSelect").value;
+  if (mode == "archiwizacja") {
+    result.beforeBarcode = "SELECT [This], [Barcode], [OkresArchiwizacji], [EmailNadawcy], [EmailOdbiorcy], [ZnakPisma], [SposobDostarczenia] FROM [Case_TOK_Kancelariaprzychodzaca] WHERE [Barcode] in (";
+    result.scriptHead = "Public Sub OnCustomProcess (CEObject)<br>CEObject.OkresArchiwizacji = \""
+    
+  } else if (mode == "anulowanie") {
+    result.beforeBarcode = "SELECT [This], [Bp8CaseID], [Barcode], [SSRN], [Status], [DateCreated] FROM [Case_TOK_Kancelariaprzychodzaca] WHERE [Barcode] in (";
+    result.scriptHead = "Public Sub OnCustomProcess (CEObject)<br>CEObject.Status = \""
+  }
+  result.afterBarcode = ") OPTIONS(TIMELIMIT 180)";
+  result.scriptTail = "\"<br>CEObject.Save<br>End Sub"
+
+  return result;
+}
+
 function printOut(processed) {
-  let beforeBarcode = "SELECT [This], [Barcode], [OkresArchiwizacji], [EmailNadawcy], [EmailOdbiorcy], [ZnakPisma], [SposobDostarczenia] FROM [Case_TOK_Kancelariaprzychodzaca] WHERE [Barcode] in (";
-  let afterBarcode = ") OPTIONS(TIMELIMIT 180)";
+  let printValues = setPrintValues();
   let divider = "~".repeat(80) + "";
   let resultDiv = document.getElementById("results");
   let index = 0;
@@ -57,32 +76,32 @@ function printOut(processed) {
   let textContainer;
   
   
-  for (let date in processed) {
+  for (let value in processed) {
     // print information and script
     let parent = addOutputDiv(index, resultDiv);
 
-    parStr = "Date: " + date + "<br>";
-    parStr += "Number of elements: " + processed[date].length + "<br><br>";
+    parStr = "Value: " + value + "<br>";
+    parStr += "Number of elements: " + processed[value].length + "<br><br>";
     parStr += "VB Script:";
     addParagraph(index, parStr, parent);
 
-    parStr = "Public Sub OnCustomProcess (CEObject)<br>CEObject.OkresArchiwizacji = \""+ date + "\"<br>CEObject.Save<br>End Sub";
+    parStr = printValues.scriptHead + value + printValues.scriptTail;
     textContainer = addParagraph(index, parStr, parent);
     addCopyButton(textContainer, parent, "Copy VB Script");
 
     parStr = "SQL querry:";
     addParagraph(index, parStr, parent);
-    parStr = beforeBarcode;
+    parStr = printValues.beforeBarcode;
     
-    for (let i = 0; i < processed[date].length; i++) {
-      const barcode = processed[date][i];
+    for (let i = 0; i < processed[value].length; i++) {
+      const barcode = processed[value][i];
       parStr += "'" + barcode + "'";
-      if (i != processed[date].length-1) {
+      if (i != processed[value].length-1) {
         parStr += ",";
       }
       
     }
-    parStr += afterBarcode;
+    parStr += printValues.afterBarcode;
     textContainer = addParagraph(index, parStr, parent);
     textContainer.id = "query" + index;
     addCopyButton(textContainer, parent, "Copy query");
