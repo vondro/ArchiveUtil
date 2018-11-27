@@ -89,7 +89,7 @@ function printOut(processed) {
     textContainer = addParagraph(index, parStr, parent);
     addCopyButton(textContainer, parent, "Copy VB Script");
 
-    parStr = "SQL querry:";
+    parStr = "SQL query:";
     addParagraph(index, parStr, parent);
     parStr = printValues.beforeBarcode;
     
@@ -104,7 +104,7 @@ function printOut(processed) {
     parStr += printValues.afterBarcode;
     textContainer = addParagraph(index, parStr, parent);
     textContainer.id = "query" + index;
-    addCopyButton(textContainer, parent, "Copy query");
+    addCopyButton(textContainer, parent, "Copy SQL query");
 
     parStr = divider;    
     addParagraph(index, parStr, parent);
